@@ -1,0 +1,221 @@
+.escaner-pantalla {
+  background: radial-gradient(ellipse at 50% 28%, #16343d 0%, #0E201B 70%);
+  color: #fff;
+  position: relative;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100dvh;
+  padding: 62px 20px 150px;
+  gap: 18px;
+}
+
+.escaner-boton-circular {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.escaner-atras {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+}
+
+.escaner-encabezado {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.escaner-titulo {
+  margin: 0;
+  font-family: var(--font-d);
+  font-weight: 700;
+  font-size: 18px;
+}
+.escaner-instruccion {
+  text-align: center;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+}
+.escaner-ayuda {
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.escaner-marco {
+  width: 62vw;
+  max-width: 260px;
+  aspect-ratio: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.escaner-marco .esquina {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-color: var(--verde-lima);
+  border-style: solid;
+}
+/* Cada esquina fija las 4 anchuras a la vez (no solo las 2 que se ven) para
+   evitar un empate de especificidad con la regla base si esta llegara a
+   declarar border-width por su cuenta. */
+.sup-izq { top: 0; left: 0; border-width: 4px 0 0 4px; border-radius: 12px 0 0 0; border-color: var(--verde-lima); filter: drop-shadow(-1px -1px 5px rgba(163, 230, 53, 0.45)); }
+.sup-der { top: 0; right: 0; border-width: 4px 4px 0 0; border-radius: 0 12px 0 0; border-color: var(--turquesa); filter: drop-shadow(1px -1px 5px rgba(20, 184, 166, 0.45)); }
+.inf-izq { bottom: 0; left: 0; border-width: 0 0 4px 4px; border-radius: 0 0 0 12px; border-color: var(--turquesa); filter: drop-shadow(-1px 1px 5px rgba(20, 184, 166, 0.45)); }
+.inf-der { bottom: 0; right: 0; border-width: 0 4px 4px 0; border-radius: 0 0 12px 0; border-color: var(--verde-lima); filter: drop-shadow(1px 1px 5px rgba(163, 230, 53, 0.45)); }
+
+.escaner-marco .esquina {
+  animation: esquina-pulso 2.4s ease-in-out infinite;
+}
+@keyframes esquina-pulso {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+.escaner-linea {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  height: 2.5px;
+  background: linear-gradient(90deg, transparent, var(--verde-lima) 20%, var(--turquesa) 50%, var(--verde-lima) 80%, transparent);
+  box-shadow: 0 0 10px 1px rgba(20, 184, 166, 0.5);
+  animation: linea-barrido 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes linea-barrido {
+  0%, 100% { top: 8%; opacity: 0; }
+  8% { opacity: 1; }
+  50% { top: 92%; opacity: 1; }
+  92% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .escaner-marco .esquina, .escaner-linea { animation: none; }
+}
+
+.escaner-controles {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  background: rgba(0, 0, 0, 0.32);
+  padding: 14px 18px;
+  border-radius: 20px;
+}
+
+.escaner-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.escaner-control span {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+}
+
+.escaner-boton-capturar {
+  width: 68px;
+  height: 68px;
+  background: var(--grad-principal);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3), 0 0 0 8px rgba(163, 230, 53, 0.16), 0 10px 26px rgba(20, 184, 166, 0.4);
+}
+
+.escaner-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.escaner-anillo {
+  position: absolute;
+  border-radius: 50%;
+}
+.escaner-anillo-1 {
+  width: 170px;
+  height: 170px;
+  border: 2px solid rgba(16, 185, 129, 0.18);
+}
+.escaner-anillo-2 {
+  width: 142px;
+  height: 142px;
+  border: 3px solid transparent;
+  border-top-color: var(--verde);
+  border-right-color: var(--turquesa);
+  animation: girar-anillo 1.4s linear infinite;
+}
+@keyframes girar-anillo {
+  to { transform: rotate(360deg); }
+}
+
+.escaner-texto-analizando {
+  margin-top: 130px;
+  text-align: center;
+}
+.escaner-texto-analizando .titulo {
+  font-family: var(--font-d);
+  font-weight: 700;
+  font-size: 17px;
+}
+.escaner-texto-analizando .sub {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 6px;
+}
+
+.escaner-pasos {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  text-align: left;
+}
+.escaner-pasos li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.4);
+  transition: color 0.25s ease;
+}
+.escaner-pasos li.hecho {
+  color: rgba(255, 255, 255, 0.92);
+}
+.escaner-pasos li .marcador {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.6px solid rgba(255, 255, 255, 0.35);
+  flex: none;
+}
+.escaner-pasos li svg {
+  color: var(--verde-lima);
+  flex: none;
+}

@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Paleta institucional EcoTech: no abusar del verde, usar azul petróleo y
+     lima como acentos secundarios. Las variables antiguas (--verde-oscuro,
+     --gris-oscuro, etc.) se conservan como alias para no romper componentes
+     existentes, pero ahora apuntan a los nuevos valores institucionales. */
+  --verde-esmeralda: #0B6B4F;
+  --verde: #10B981;
+  --verde-oscuro: #0B6B4F;
+  --azul-petroleo: #123B4A;
+  --turquesa: #14B8A6;
+  --verde-lima: #A3E635;
+
+  --fondo: #F6F8F7;
+  --superficie: #FFFFFF;
+  --blanco: #FFFFFF;
+  --texto: #15231D;
+  --gris-oscuro: #15231D;
+  --texto-secundario: #64746C;
+  --borde: #E2E9E5;
+
+  /* Colores oficiales de caneca: se conservan intactos, son información,
+     no decoración. */
+  --caneca-blanca: #FBFBFA;
+  --caneca-blanca-borde: #D9E0DC;
+  --caneca-verde: #10B981;
+  --caneca-negra: #17211B;
+
+  --rojo-alerta: #C0392B;
+  --rojo-alerta-fondo: #FDECEA;
+
+  --grad-principal: linear-gradient(125deg, #0B6B4F 0%, #0F8A6A 35%, #14B8A6 68%, #A3E635 100%);
+  --grad-oscuro: linear-gradient(160deg, #0B2E28 0%, #0B6B4F 55%, #14B8A6 130%);
+  --grad-splash: linear-gradient(150deg, #0B6B4F 0%, #0F8A6A 38%, #14B8A6 72%, #7FD858 100%);
+
+  /* Degradados de acento para tarjetas de estadísticas e insignias */
+  --grad-turquesa: linear-gradient(160deg, #14B8A6 0%, #7FD8D0 100%);
+  --grad-lima: linear-gradient(160deg, #A3E635 0%, #5AA82E 100%);
+  --grad-carbon: linear-gradient(160deg, #3A4640 0%, #15231D 100%);
+
+  --radio-tarjeta: 18px;
+  --radio-boton: 13px;
+  --radio-input: 12px;
+  --radio-modal: 22px;
+  --radio-chip: 10px;
+  --radio-encabezado: 20px;
+
+  --font-d: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+  --font-b: 'Inter', 'Segoe UI', system-ui, sans-serif;
+
+  --sombra-tarjeta-sm: 0 8px 30px rgba(15, 40, 32, 0.08);
+  --sombra-tarjeta: 0 14px 35px rgba(15, 40, 32, 0.12);
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--font-b);
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+a { color: inherit; }
+
+:focus-visible {
+  outline: 2.5px solid var(--turquesa);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.pantalla-columna {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  width: 100%;
+  background: var(--fondo);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+  animation: pantalla-entrada 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.inicio-acciones-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@keyframes pantalla-entrada {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  border-radius: 14px;
+  background: linear-gradient(100deg, #EEF2F0 30%, #F8FAF9 50%, #EEF2F0 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes splash-logo {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes splash-texto {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fila-entrada {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes resultado-pop {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulso-punto {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(163, 230, 53, 0.55); }
+  50% { box-shadow: 0 0 0 5px rgba(163, 230, 53, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pantalla-columna { animation: none; }
+  .skeleton { animation: none; }
+}
+
+::selection {
+  background: var(--verde);
+  color: #fff;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #C9D2CD; border-radius: 100px; }
+::-webkit-scrollbar-thumb:hover { background: #9BAAA1; }
+
+@media (hover: hover) {
+  .tarjeta[role="button"]:hover, .tarjeta-clicable:hover {
+    box-shadow: var(--sombra-tarjeta);
+    transform: translateY(-3px);
+  }
+  .btn-primario:hover:not(:disabled) { filter: brightness(1.06); }
+}
+.tarjeta-clicable {
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.tarjeta-clicable:active { transform: scale(0.98); }
