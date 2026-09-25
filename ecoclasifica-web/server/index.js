@@ -4,6 +4,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { db, DB_URL } from "./db.js";
 import { hashPassword, verificarPassword } from "./hash.js";
+import * as ort from "onnxruntime-node";
+import sharp from "sharp";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUERTO = process.env.PORT ? Number(process.env.PORT) : 4000;
@@ -11,8 +13,12 @@ const CORREO_REGEX = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const ROLES_VALIDOS = ["Estudiante", "Personal de aseo"];
 
 const app = express();
+app.use((req, _res, next) => {
+  console.log("🌐 PETICIÓN:", req.method, req.url);
+  next();
+});
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 // ---------------------------------------------------------------------
 // Helpers de acceso a datos (@libsql/client es asíncrono: cada consulta
@@ -52,6 +58,285 @@ function aClasificacion(fila) {
 function asincrona(manejador) {
   return (req, res, next) => manejador(req, res, next).catch(next);
 }
+
+
+// ---------------------------------------------------------------------
+// Detector YOLO ONNX
+// ---------------------------------------------------------------------
+
+const CLASES_YOLO = [
+  "botella_plastica",
+  "botella_vidrio",
+  "lata",
+  "carton",
+  "papel",
+  "envoltorio_snack",
+  "servilleta_usada",
+  "restos_comida",
+  "cascara_fruta",
+  "envase_desechable",
+  "residuo_vegetal",
+];
+
+const CANECA_POR_CLASE = {
+  botella_plastica: "blanca",
+  botella_vidrio: "blanca",
+  lata: "blanca",
+  carton: "blanca",
+  papel: "blanca",
+
+  envoltorio_snack: "negra",
+  servilleta_usada: "negra",
+
+  restos_comida: "verde",
+  cascara_fruta: "verde",
+  residuo_vegetal: "verde",
+};
+
+const UMBRAL_YOLO = 0.25;
+
+const RUTA_MODELO = path.resolve(
+  __dirname,
+  "../modelos/clasificador_residuos_best.onnx"
+);
+
+let sesionYOLOPromise;
+
+function obtenerSesionYOLO() {
+  if (!sesionYOLOPromise) {
+    sesionYOLOPromise = ort.InferenceSession.create(RUTA_MODELO);
+  }
+
+  return sesionYOLOPromise;
+}
+
+async function imagenATensor(dataUrl) {
+  if (
+    typeof dataUrl !== "string" ||
+    !dataUrl.startsWith("data:image/")
+  ) {
+    throw new Error("La imagen recibida no es válida.");
+  }
+
+  const coma = dataUrl.indexOf(",");
+
+  if (coma < 0) {
+    throw new Error("La imagen recibida no contiene datos.");
+  }
+
+  const buffer = Buffer.from(
+    dataUrl.slice(coma + 1),
+    "base64"
+  );
+
+  const { data, info } = await sharp(buffer)
+    .rotate()
+    .resize(640, 640, {
+      fit: "contain",
+      position: "centre",
+      background: {
+        r: 114,
+        g: 114,
+        b: 114,
+      },
+    })
+    .removeAlpha()
+    .raw()
+    .toBuffer({
+      resolveWithObject: true,
+    });
+
+  if (
+    info.width !== 640 ||
+    info.height !== 640 ||
+    info.channels !== 3
+  ) {
+    throw new Error(
+      "No se pudo convertir la imagen a RGB 640x640."
+    );
+  }
+
+  const area = 640 * 640;
+
+  const entrada = new Float32Array(
+    3 * area
+  );
+
+  for (let i = 0; i < area; i += 1) {
+    entrada[i] =
+      data[i * 3] / 255;
+
+    entrada[area + i] =
+      data[i * 3 + 1] / 255;
+
+    entrada[2 * area + i] =
+      data[i * 3 + 2] / 255;
+  }
+
+  return new ort.Tensor(
+    "float32",
+    entrada,
+    [1, 3, 640, 640]
+  );
+}
+
+function mejorDeteccionYOLO(salida) {
+  const datos = salida.data;
+  const dimensiones = salida.dims;
+
+  if (
+    dimensiones.length !== 3 ||
+    dimensiones[0] !== 1 ||
+    dimensiones[1] !==
+      4 + CLASES_YOLO.length
+  ) {
+    throw new Error(
+      `Salida YOLO inesperada: [${dimensiones.join(", ")}]`
+    );
+  }
+
+  const candidatos = dimensiones[2];
+
+  let mejorConfianza = 0;
+  let mejorClase = -1;
+
+  for (
+    let i = 0;
+    i < candidatos;
+    i += 1
+  ) {
+    for (
+      let clase = 0;
+      clase < CLASES_YOLO.length;
+      clase += 1
+    ) {
+      const confianza =
+        datos[
+          (4 + clase) * candidatos + i
+        ];
+
+      if (
+        confianza > mejorConfianza
+      ) {
+        mejorConfianza = confianza;
+        mejorClase = clase;
+      }
+    }
+  }
+
+  if (
+    mejorClase < 0 ||
+    mejorConfianza < UMBRAL_YOLO
+  ) {
+    return {
+      residuo: null,
+      confianza: mejorConfianza,
+      caneca: null,
+      reconocido: false,
+    };
+  }
+
+  const residuo =
+    CLASES_YOLO[mejorClase];
+
+  if (
+    residuo ===
+    "envase_desechable"
+  ) {
+    return {
+      residuo,
+      confianza: mejorConfianza,
+      caneca: null,
+      reconocido: true,
+    };
+  }
+
+  return {
+    residuo,
+    confianza: mejorConfianza,
+    caneca:
+      CANECA_POR_CLASE[residuo] ??
+      null,
+    reconocido: true,
+  };
+}
+
+app.post(
+  "/api/detectar",
+
+  asincrona(async (req, res) => {
+    console.log("======================================");
+    console.log("📥 RECIBIDA PETICIÓN /api/detectar");
+    console.log("Hora:", new Date().toISOString());
+
+    const imagenDataUrl = req.body?.imagenDataUrl;
+
+    console.log(
+      "Imagen recibida:",
+      typeof imagenDataUrl,
+      imagenDataUrl
+        ? `${imagenDataUrl.length} caracteres`
+        : "SIN IMAGEN"
+    );
+
+    if (!imagenDataUrl) {
+      console.log("❌ No se recibió imagen.");
+
+      return res
+        .status(400)
+        .json({
+          exito: false,
+          mensaje: "Debes enviar una imagen.",
+        });
+    }
+
+    console.log("1️⃣ Convirtiendo imagen a tensor...");
+
+    const tensor = await imagenATensor(imagenDataUrl);
+
+    console.log("2️⃣ Tensor creado correctamente.");
+    console.log("Dimensiones:", tensor.dims);
+
+    console.log("3️⃣ Cargando modelo YOLO...");
+
+    const sesion = await obtenerSesionYOLO();
+
+    console.log("4️⃣ Modelo YOLO cargado.");
+    console.log("Ejecutando inferencia...");
+
+    const resultados = await sesion.run({
+      images: tensor,
+    });
+
+    console.log("5️⃣ YOLO terminó.");
+
+    const salida = resultados.output0;
+
+    if (!salida) {
+      throw new Error(
+        "El modelo no devolvió output0."
+      );
+    }
+
+    console.log(
+      "6️⃣ output0 recibido:",
+      salida.dims
+    );
+
+    const resultadoFinal =
+      mejorDeteccionYOLO(salida);
+
+    console.log(
+      "7️⃣ RESULTADO:",
+      resultadoFinal
+    );
+
+    console.log("📤 Enviando resultado al celular.");
+    console.log("======================================");
+
+    res.json(resultadoFinal);
+  })
+);
 
 // ---------------------------------------------------------------------
 // Autenticación

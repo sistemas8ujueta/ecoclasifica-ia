@@ -16,7 +16,7 @@ const CONSEJOS: Record<CanecaId, string[]> = {
     "No deposites líquidos: escurre bien los restos antes de botarlos.",
   ],
   negra: [
-    "Los residuos sanitarios deben ir siempre en bolsa cerrada.",
+    "En la caneca negra van los residuos no aprovechables, como envoltorios y servilletas usadas.",
     "Si un empaque tiene restos de comida o grasa, ya no es aprovechable.",
     "Ante la duda entre caneca blanca o negra, prioriza la higiene: va en la negra.",
   ],

@@ -60,7 +60,11 @@ export function Dashboard() {
               <div className="panel-kpi">
                 <IconBadge icono={<IconRecycle size={16} />} tamano={32} colorFondo="#F3ECFB" colorIcono="#7C3AED" />
                 <div className="etiqueta" style={{ marginTop: 8 }}>Precisión de IA</div>
-                <div className="valor">{datos.confianzaPromedio !== null ? `${datos.confianzaPromedio}%` : "—"}</div>
+               <div className="valor">
+  {datos.confianzaPromedio !== null
+    ? `${Math.round(datos.confianzaPromedio * 100)}%`
+    : "—"}
+</div>
               </div>
               <div className="panel-kpi">
                 <IconBadge icono={<IconLeaf size={16} />} tamano={32} colorFondo="#FDF1E0" colorIcono="#B45309" />

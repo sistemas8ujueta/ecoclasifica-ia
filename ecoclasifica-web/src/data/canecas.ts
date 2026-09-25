@@ -1,6 +1,5 @@
-// Catálogo de canecas y residuos, portado 1:1 desde
-// services/clasificador_canecas.py (la versión Python del proyecto) para
-// que la lógica de clasificación no se invente nada nuevo.
+// Catálogo oficial de canecas y residuos de EcoClasifica IA.
+// Debe mantenerse sincronizado con las 11 clases del modelo YOLO.
 
 export type CanecaId = "blanca" | "verde" | "negra";
 
@@ -15,20 +14,25 @@ export const CANECAS: Record<CanecaId, InfoCaneca> = {
   blanca: {
     id: "blanca",
     nombre: "Caneca blanca",
-    colorHex: "#FBFBFA",
-    descripcion: "Residuos aprovechables: plástico, vidrio, latas, papel y cartón limpios y secos.",
+    colorHex: "#ffffff",
+    descripcion:
+      "Residuos aprovechables: botellas plásticas, botellas de vidrio, latas, papel, cartón y envases desechables limpios y secos.",
   },
+
   verde: {
     id: "verde",
     nombre: "Caneca verde",
     colorHex: "#10B981",
-    descripcion: "Residuos orgánicos aprovechables: restos de comida, cáscaras y residuos vegetales.",
+    descripcion:
+      "Residuos orgánicos aprovechables: restos de comida, cáscaras de fruta y residuos vegetales.",
   },
+
   negra: {
     id: "negra",
     nombre: "Caneca negra",
     colorHex: "#17211B",
-    descripcion: "Residuos no aprovechables: servilletas usadas, papel higiénico, empaques contaminados y residuos sanitarios.",
+    descripcion:
+      "Residuos no aprovechables: envoltorios de snacks, servilletas usadas y envases desechables sucios o contaminados.",
   },
 };
 
@@ -41,69 +45,116 @@ export interface InfoResiduo {
 
 export const RESIDUOS: Record<string, InfoResiduo> = {
   botella_plastica: {
-    clave: "botella_plastica", nombreVisible: "Botella plástica", caneca: "blanca",
-    explicacion: "Las botellas plásticas limpias son 100% reciclables. Retira la tapa y aplástala antes de depositarla.",
+    clave: "botella_plastica",
+    nombreVisible: "Botella plástica",
+    caneca: "blanca",
+    explicacion:
+      "La botella plástica debe depositarse limpia y seca en la caneca blanca.",
   },
+
   botella_vidrio: {
-    clave: "botella_vidrio", nombreVisible: "Botella de vidrio", caneca: "blanca",
-    explicacion: "El vidrio se recicla indefinidamente sin perder calidad. Deposítalo sin restos de líquido.",
+    clave: "botella_vidrio",
+    nombreVisible: "Botella de vidrio",
+    caneca: "blanca",
+    explicacion:
+      "La botella de vidrio limpia y seca debe depositarse en la caneca blanca.",
   },
+
   lata: {
-    clave: "lata", nombreVisible: "Lata", caneca: "blanca",
-    explicacion: "Las latas de aluminio o acero son altamente reciclables. Enjuágalas antes de desecharlas.",
+    clave: "lata",
+    nombreVisible: "Lata",
+    caneca: "blanca",
+    explicacion:
+      "Las latas limpias y secas deben depositarse en la caneca blanca.",
   },
-  papel: {
-    clave: "papel", nombreVisible: "Papel", caneca: "blanca",
-    explicacion: "El papel limpio y seco puede reciclarse varias veces. Evita depositar papel sucio o engrasado.",
-  },
+
   carton: {
-    clave: "carton", nombreVisible: "Cartón", caneca: "blanca",
-    explicacion: "Aplana las cajas de cartón para ahorrar espacio y facilita su reciclaje.",
+    clave: "carton",
+    nombreVisible: "Cartón",
+    caneca: "blanca",
+    explicacion:
+      "El cartón limpio y seco debe depositarse en la caneca blanca.",
   },
-  envase_reciclable: {
-    clave: "envase_reciclable", nombreVisible: "Envase reciclable limpio y seco", caneca: "blanca",
-    explicacion: "Los envases reciclables deben estar limpios y secos para poder aprovecharse correctamente.",
+
+  papel: {
+    clave: "papel",
+    nombreVisible: "Papel",
+    caneca: "blanca",
+    explicacion:
+      "El papel limpio y seco debe depositarse en la caneca blanca.",
   },
-  restos_comida: {
-    clave: "restos_comida", nombreVisible: "Restos de comida", caneca: "verde",
-    explicacion: "Los restos de comida pueden convertirse en abono orgánico mediante compostaje.",
+
+  envoltorio_snack: {
+    clave: "envoltorio_snack",
+    nombreVisible: "Envoltorio de snack",
+    caneca: "negra",
+    explicacion:
+      "Los envoltorios de snacks se clasifican como residuos no aprovechables y van en la caneca negra.",
   },
-  cascara_fruta: {
-    clave: "cascara_fruta", nombreVisible: "Cáscara de fruta", caneca: "verde",
-    explicacion: "Las cáscaras de fruta son un excelente material para compostaje.",
-  },
-  residuo_vegetal: {
-    clave: "residuo_vegetal", nombreVisible: "Residuo vegetal", caneca: "verde",
-    explicacion: "Los residuos vegetales se degradan fácilmente y pueden aprovecharse como abono.",
-  },
+
   servilleta_usada: {
-    clave: "servilleta_usada", nombreVisible: "Servilleta usada", caneca: "negra",
-    explicacion: "Las servilletas usadas no son reciclables por estar contaminadas con residuos orgánicos.",
+    clave: "servilleta_usada",
+    nombreVisible: "Servilleta usada",
+    caneca: "negra",
+    explicacion:
+      "Las servilletas usadas se depositan en la caneca negra.",
   },
-  papel_higienico: {
-    clave: "papel_higienico", nombreVisible: "Papel higiénico", caneca: "negra",
-    explicacion: "El papel higiénico usado se considera residuo sanitario y va en la caneca negra.",
+
+  restos_comida: {
+    clave: "restos_comida",
+    nombreVisible: "Restos de comida",
+    caneca: "verde",
+    explicacion:
+      "Los restos de comida son residuos orgánicos aprovechables y van en la caneca verde.",
   },
-  empaque_contaminado: {
-    clave: "empaque_contaminado", nombreVisible: "Empaque contaminado", caneca: "negra",
-    explicacion: "Un empaque con restos de comida o grasa deja de ser aprovechable y debe ir en la caneca negra.",
+
+  cascara_fruta: {
+    clave: "cascara_fruta",
+    nombreVisible: "Cáscara de fruta",
+    caneca: "verde",
+    explicacion:
+      "Las cáscaras de fruta son residuos orgánicos aprovechables y van en la caneca verde.",
   },
-  residuo_sanitario: {
-    clave: "residuo_sanitario", nombreVisible: "Residuo sanitario", caneca: "negra",
-    explicacion: "Los residuos sanitarios deben manejarse como no aprovechables por razones de higiene.",
+
+  // Caso especial:
+  // El modelo reconoce "envase_desechable", pero la caneca final
+  // depende de si está limpio y seco o sucio/contaminado.
+  envase_desechable: {
+    clave: "envase_desechable",
+    nombreVisible: "Envase desechable",
+    caneca: "blanca",
+    explicacion:
+      "Si está limpio y seco va en la caneca blanca. Si está sucio o contaminado va en la caneca negra.",
+  },
+
+  residuo_vegetal: {
+    clave: "residuo_vegetal",
+    nombreVisible: "Residuo vegetal",
+    caneca: "verde",
+    explicacion:
+      "Los residuos vegetales son orgánicos aprovechables y van en la caneca verde.",
   },
 };
 
 export const UMBRAL_CONFIANZA_PREDETERMINADO = 0.5;
 
-export function clasificar(residuoClave: string): InfoResiduo | undefined {
+export function clasificar(
+  residuoClave: string
+): InfoResiduo | undefined {
   return RESIDUOS[residuoClave];
 }
 
-export function esConfianzaSuficiente(confianza: number, umbral = UMBRAL_CONFIANZA_PREDETERMINADO): boolean {
+export function esConfianzaSuficiente(
+  confianza: number,
+  umbral = UMBRAL_CONFIANZA_PREDETERMINADO
+): boolean {
   return confianza >= umbral;
 }
 
-export function residuosPorCaneca(canecaId: CanecaId): InfoResiduo[] {
-  return Object.values(RESIDUOS).filter((r) => r.caneca === canecaId);
+export function residuosPorCaneca(
+  canecaId: CanecaId
+): InfoResiduo[] {
+  return Object.values(RESIDUOS).filter(
+    (r) => r.caneca === canecaId
+  );
 }

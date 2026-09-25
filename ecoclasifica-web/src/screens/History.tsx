@@ -17,15 +17,30 @@ const FILTROS: { id: CanecaId | "todas"; etiqueta: string }[] = [
 
 const ESTILO_CHIP_INACTIVO: Record<CanecaId | "todas", React.CSSProperties> = {
   todas: {},
-  blanca: { background: "#EDEFEE", color: "#3A4640", borderColor: "#DCE1DE" },
-  verde: { background: "#E8F6DA", color: "#3E7A1E", borderColor: "#CFE9AE" },
+  blanca: { background: "#EDEFEE", color: "#3A4640", borderColor: "#464742d3" },
+  verde: { background: "#E8F6DA", color: "#3E7A1E", borderColor: "#44487e" },
   negra: { background: "#26332C", color: "#fff", borderColor: "#26332C" },
 };
 
-const ICONO_POR_CANECA: Record<CanecaId, { icono: React.ReactNode; color: string; fondo: string }> = {
-  blanca: { icono: <IconBottle size={18} />, color: "#fff", fondo: "linear-gradient(135deg, #7C8A81, #3E4B45)" },
-  verde: { icono: <IconLeaf size={18} />, color: "#fff", fondo: "linear-gradient(135deg, var(--verde-esmeralda), var(--verde-lima))" },
-  negra: { icono: <IconBin size={18} />, color: "#fff", fondo: "var(--grad-carbon)" },
+const ICONO_POR_CANECA: Record<
+  CanecaId,
+  { icono: React.ReactNode; color: string; fondo: string }
+> = {
+ blanca: {
+  icono: <IconBottle size={18} />,
+  color: "#26332C",
+  fondo: "#f8fbfc",
+},
+  verde: {
+    icono: <IconLeaf size={18} />,
+    color: "#FFFFFF",
+    fondo: "linear-gradient(135deg, var(--verde-esmeralda), var(--verde-lima))",
+  },
+  negra: {
+    icono: <IconBin size={18} />,
+    color: "#FFFFFF",
+    fondo: "var(--grad-carbon)",
+  },
 };
 
 function formatearFecha(iso: string): string {

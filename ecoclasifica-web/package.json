@@ -13,15 +13,27 @@
     "build": "tsc -b && vite build",
     "start": "node server/index.js",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "cap:sync": "npm run build && npx cap sync",
+    "android:open": "npm run build && npx cap sync android && npx cap open android",
+    "android:apk": "npm run build && npx cap sync android && cd android && gradlew assembleDebug",
+    "ios:open": "npm run build && npx cap sync ios && npx cap open ios"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/camera": "^8.2.4",
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
     "@libsql/client": "^0.18.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "onnxruntime-node": "^1.30.0",
+    "onnxruntime-web": "^1.30.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-router-dom": "^7.18.3"
+    "react-router-dom": "^7.18.3",
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
@@ -35,5 +47,8 @@
     "playwright": "^1.63.0",
     "typescript": "~6.0.2",
     "vite": "^8.2.2"
+  },
+  "allowScripts": {
+    "onnxruntime-node@1.30.0": true
   }
 }
