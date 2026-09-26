@@ -1,10 +1,4 @@
 import { useEffect, useState } from "react";
-import {
-  Camera,
-  CameraDirection,
-  CameraResultType,
-  CameraSource,
-} from "@capacitor/camera";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import * as detector from "../services/detector";
@@ -126,142 +120,24 @@ export function Scanner() {
     }
   }
 
-  function esErrorDeDisco(error: unknown) {
-    const mensaje =
-      error instanceof Error
-        ? error.message
-        : String(error);
-
-    return /disk|disco|ENOENT|create.*(file|photo)/i.test(
-      mensaje
-    );
-  }
-
-  function abrirSelectorDeGaleria() {
-    document
-      .getElementById("input-galeria")
-      ?.click();
-  }
-
-  async function tomarFotoConCamara() {
-    return Camera.getPhoto({
-      quality: 90,
-      allowEditing: false,
-      resultType: CameraResultType.DataUrl,
-      source: CameraSource.Camera,
-      direction: modoFrontal
-        ? CameraDirection.Front
-        : CameraDirection.Rear,
-    });
-  }
-
-  async function capturarConCamara() {
+  // Usamos el selector de archivos nativo del navegador con el
+  // atributo `capture`, en vez del plugin @capacitor/camera.
+  //
+  // Motivo: el plugin @capacitor/camera (con CameraX por debajo)
+  // resultó no ser confiable en algunos equipos Android, fallando
+  // con "Unable to create photo on disk" incluso con el permiso de
+  // Cámara ya concedido. El atributo `capture` en un <input type="file">
+  // delega la captura directamente a la app de cámara del sistema
+  // (la misma que usan las demás apps del teléfono), así que funciona
+  // de forma consistente sin importar el modelo o la marca del equipo.
+  function capturarConCamara() {
     if (analizando) {
       return;
     }
 
-    try {
-      setAnalizando(true);
-
-      // Nos aseguramos de tener permiso de cámara ANTES de abrirla.
-      // Si el permiso no está concedido, algunas versiones de Android
-      // fallan al intentar guardar la foto temporal en vez de avisar
-      // claramente que falta el permiso, así que lo pedimos explícito.
-      const permisos =
-        await Camera.checkPermissions();
-
-      if (permisos.camera !== "granted") {
-        const solicitud =
-          await Camera.requestPermissions({
-            permissions: ["camera"],
-          });
-
-        if (solicitud.camera !== "granted") {
-          alert(
-            "Necesitas darle permiso de Cámara a EcoClasifica. Ve a Ajustes > Aplicaciones > EcoClasifica > Permisos y actívalo, o usa 'Subir imagen' mientras tanto."
-          );
-          return;
-        }
-      }
-
-      console.log(
-        "Abriendo cámara nativa..."
-      );
-
-      let foto;
-
-      try {
-        foto = await tomarFotoConCamara();
-      } catch (errorCamara) {
-        // Reintento único: en algunos equipos Android el primer intento
-        // falla por una carpeta temporal que aún no existe/se libera,
-        // y un segundo intento inmediato funciona sin problema.
-        if (esErrorDeDisco(errorCamara)) {
-          console.warn(
-            "Primer intento de cámara falló, reintentando...",
-            errorCamara
-          );
-          foto = await tomarFotoConCamara();
-        } else {
-          throw errorCamara;
-        }
-      }
-
-      if (!foto.dataUrl) {
-        throw new Error(
-          "No se pudo obtener la fotografía."
-        );
-      }
-
-      console.log(
-        "Fotografía capturada correctamente."
-      );
-
-      console.log(
-        "Analizando con modelo ONNX local..."
-      );
-
-      const resultado =
-        await detector.predecir(
-          foto.dataUrl
-        );
-
-      console.log(
-        "Resultado:",
-        resultado
-      );
-
-      guardarResultadoEscaneo(
-        resultado,
-        foto.dataUrl
-      );
-
-      navigate("/resultado");
-    } catch (error) {
-      console.error(
-        "ERROR DE CÁMARA:",
-        error
-      );
-
-      if (esErrorDeDisco(error)) {
-        // La cámara nativa no pudo guardar la foto ni tras reintentar.
-        // En vez de dejar al usuario atascado, abrimos el selector de
-        // galería/cámara del sistema como respaldo.
-        alert(
-          "La cámara nativa no pudo guardar la foto en este equipo. Vamos a abrir el selector de imágenes: puedes tomar la foto ahí mismo o elegir una existente."
-        );
-        abrirSelectorDeGaleria();
-        return;
-      }
-
-      alert(
-        error instanceof Error
-          ? error.message
-          : "No se pudo capturar o analizar la imagen."
-      );
-    } finally {
-      setAnalizando(false);
-    }
+    document
+      .getElementById("input-camara-nativa")
+      ?.click();
   }
 
   return (
@@ -383,11 +259,42 @@ export function Scanner() {
         style={{
           display: "none",
         }}
-        onChange={(e) =>
+        onChange={(e) => {
           procesarArchivo(
             e.target.files?.[0]
-          )
+          );
+          e.target.value = "";
+        }}
+      />
+
+      {/*
+        CÁMARA NATIVA (vía navegador, no vía @capacitor/camera).
+        El atributo `capture` hace que el navegador abra directamente
+        la app de cámara del sistema en vez de un selector de archivos.
+        `key` fuerza a recrear el input al cambiar de cámara frontal/trasera,
+        porque algunos navegadores ignoran un cambio de atributo en caliente.
+      */}
+      <input
+        key={
+          modoFrontal
+            ? "camara-frontal"
+            : "camara-trasera"
         }
+        id="input-camara-nativa"
+        type="file"
+        accept="image/*"
+        capture={
+          modoFrontal ? "user" : "environment"
+        }
+        style={{
+          display: "none",
+        }}
+        onChange={(e) => {
+          procesarArchivo(
+            e.target.files?.[0]
+          );
+          e.target.value = "";
+        }}
       />
 
       {analizando && (
