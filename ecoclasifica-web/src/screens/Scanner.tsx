@@ -126,6 +126,35 @@ export function Scanner() {
     }
   }
 
+  function esErrorDeDisco(error: unknown) {
+    const mensaje =
+      error instanceof Error
+        ? error.message
+        : String(error);
+
+    return /disk|disco|ENOENT|create.*(file|photo)/i.test(
+      mensaje
+    );
+  }
+
+  function abrirSelectorDeGaleria() {
+    document
+      .getElementById("input-galeria")
+      ?.click();
+  }
+
+  async function tomarFotoConCamara() {
+    return Camera.getPhoto({
+      quality: 90,
+      allowEditing: false,
+      resultType: CameraResultType.DataUrl,
+      source: CameraSource.Camera,
+      direction: modoFrontal
+        ? CameraDirection.Front
+        : CameraDirection.Rear,
+    });
+  }
+
   async function capturarConCamara() {
     if (analizando) {
       return;
@@ -134,22 +163,49 @@ export function Scanner() {
     try {
       setAnalizando(true);
 
+      // Nos aseguramos de tener permiso de cámara ANTES de abrirla.
+      // Si el permiso no está concedido, algunas versiones de Android
+      // fallan al intentar guardar la foto temporal en vez de avisar
+      // claramente que falta el permiso, así que lo pedimos explícito.
+      const permisos =
+        await Camera.checkPermissions();
+
+      if (permisos.camera !== "granted") {
+        const solicitud =
+          await Camera.requestPermissions({
+            permissions: ["camera"],
+          });
+
+        if (solicitud.camera !== "granted") {
+          alert(
+            "Necesitas darle permiso de Cámara a EcoClasifica. Ve a Ajustes > Aplicaciones > EcoClasifica > Permisos y actívalo, o usa 'Subir imagen' mientras tanto."
+          );
+          return;
+        }
+      }
+
       console.log(
         "Abriendo cámara nativa..."
       );
 
-      const foto =
-        await Camera.getPhoto({
-          quality: 90,
-          allowEditing: false,
-          resultType:
-            CameraResultType.DataUrl,
-          source:
-            CameraSource.Camera,
-          direction: modoFrontal
-            ? CameraDirection.Front
-            : CameraDirection.Rear,
-        });
+      let foto;
+
+      try {
+        foto = await tomarFotoConCamara();
+      } catch (errorCamara) {
+        // Reintento único: en algunos equipos Android el primer intento
+        // falla por una carpeta temporal que aún no existe/se libera,
+        // y un segundo intento inmediato funciona sin problema.
+        if (esErrorDeDisco(errorCamara)) {
+          console.warn(
+            "Primer intento de cámara falló, reintentando...",
+            errorCamara
+          );
+          foto = await tomarFotoConCamara();
+        } else {
+          throw errorCamara;
+        }
+      }
 
       if (!foto.dataUrl) {
         throw new Error(
@@ -186,6 +242,17 @@ export function Scanner() {
         "ERROR DE CÁMARA:",
         error
       );
+
+      if (esErrorDeDisco(error)) {
+        // La cámara nativa no pudo guardar la foto ni tras reintentar.
+        // En vez de dejar al usuario atascado, abrimos el selector de
+        // galería/cámara del sistema como respaldo.
+        alert(
+          "La cámara nativa no pudo guardar la foto en este equipo. Vamos a abrir el selector de imágenes: puedes tomar la foto ahí mismo o elegir una existente."
+        );
+        abrirSelectorDeGaleria();
+        return;
+      }
 
       alert(
         error instanceof Error
